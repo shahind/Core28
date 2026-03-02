@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core28 | Your Personal Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .btn-coach { background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%); transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+        .btn-coach:active { transform: scale(0.97); opacity: 0.9; }
+        .hidden-section { display: none !important; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        .fade-out { animation: fadeOut 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
+        .day-card { transition: all 0.3s ease; }
+        .day-complete { background: rgba(16, 185, 129, 0.1) !important; border-color: #10b981 !important; }
+        .day-current { border: 2px solid #6366f1 !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+        .progress-bar-inner { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-lg glass rounded-[2rem] p-8 shadow-2xl relative min-h-[600px] flex flex-col">
+        
+        <!-- ONBOARDING FLOW -->
+        <div id="section-onboarding" class="flex-grow flex flex-col justify-center">
+            <div id="step-intro" class="onboarding-step space-y-8 py-10 text-center">
+                <div class="space-y-4">
+                    <div class="inline-block p-3 bg-indigo-500/10 rounded-2xl text-indigo-400 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                    </div>
+                    <h1 class="text-4xl font-extrabold tracking-tight">Ready to start?</h1>
+                    <p class="text-slate-400 text-lg leading-relaxed">Before we begin your 28-day journey, I need to understand your current strength. I'll ask you 3 simple questions.</p>
+                </div>
+                <button onclick="nextStep('intro', 'q1')" class="w-full btn-coach py-5 rounded-2xl font-bold text-lg">Let's do it, Coach</button>
+            </div>
+
+            <div id="step-q1" class="onboarding-step hidden-section space-y-8">
+                <div class="text-center">
+                    <span class="text-xs font-bold text-indigo-400 tracking-widest uppercase">Question 1/3</span>
+                    <h2 class="text-2xl font-bold mt-2">How many push-ups can you do?</h2>
+                </div>
+                <div class="grid gap-3">
+                    <button onclick="saveAnswer('pushups', 0, 'q1', 'q2')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">0 - 5 (Just starting out)</button>
+                    <button onclick="saveAnswer('pushups', 10, 'q1', 'q2')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">5 - 15 (Building strength)</button>
+                    <button onclick="saveAnswer('pushups', 25, 'q1', 'q2')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">15 - 30 (Experienced)</button>
+                    <button onclick="saveAnswer('pushups', 40, 'q1', 'q2')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">30+ (Advanced Athlete)</button>
+                </div>
+            </div>
+
+            <div id="step-q2" class="onboarding-step hidden-section space-y-8">
+                <div class="text-center">
+                    <span class="text-xs font-bold text-indigo-400 tracking-widest uppercase">Question 2/3</span>
+                    <h2 class="text-2xl font-bold mt-2">How about tricep dips?</h2>
+                </div>
+                <div class="grid gap-3">
+                    <button onclick="saveAnswer('dips', 0, 'q2', 'q3')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">None yet</button>
+                    <button onclick="saveAnswer('dips', 8, 'q2', 'q3')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">1 - 10 reps</button>
+                    <button onclick="saveAnswer('dips', 15, 'q2', 'q3')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">10 - 20 reps</button>
+                    <button onclick="saveAnswer('dips', 25, 'q2', 'q3')" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">20+ reps</button>
+                </div>
+            </div>
+
+            <div id="step-q3" class="onboarding-step hidden-section space-y-8">
+                <div class="text-center">
+                    <span class="text-xs font-bold text-indigo-400 tracking-widest uppercase">Question 3/3</span>
+                    <h2 class="text-2xl font-bold mt-2">Plank hold duration?</h2>
+                </div>
+                <div class="grid gap-3">
+                    <button onclick="calculateAndShowResult(15)" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">< 30 seconds</button>
+                    <button onclick="calculateAndShowResult(45)" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">30 - 60 seconds</button>
+                    <button onclick="calculateAndShowResult(90)" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">1 - 2 minutes</button>
+                    <button onclick="calculateAndShowResult(130)" class="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-xl text-left hover:border-indigo-500">2+ minutes</button>
+                </div>
+            </div>
+
+            <div id="step-result" class="onboarding-step hidden-section space-y-4 text-center">
+                <div class="py-6">
+                    <p class="text-indigo-400 font-bold uppercase tracking-widest text-sm mb-2">My Recommendation</p>
+                    <h2 id="result-level-title" class="text-5xl font-black mb-4">Level</h2>
+                    <p id="result-level-desc" class="text-slate-400 text-lg"></p>
+                </div>
+                <button onclick="finalizeOnboarding()" class="w-full btn-coach py-5 rounded-2xl font-bold text-lg">Accept & View My Plan</button>
+                <button onclick="restartOnboarding()" class="w-full border border-white/10 py-4 rounded-2xl font-bold text-slate-500 hover:text-white transition-colors">Not quite right? Restart</button>
+            </div>
+        </div>
+
+        <!-- CALENDAR VIEW -->
+        <div id="section-calendar" class="hidden-section flex flex-col h-full fade-in">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold">28 Day Plan</h1>
+                    <p class="text-slate-400 text-sm" id="calendar-subtitle">Day 1 of 28</p>
+                </div>
+                <div class="text-right">
+                    <span id="overall-progress-pct" class="text-indigo-400 font-bold">0%</span>
+                    <div class="w-24 h-2 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                        <div id="overall-progress-bar" class="h-full bg-indigo-500 progress-bar-inner" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calendar-grid" class="grid grid-cols-4 gap-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar"></div>
+
+            <div class="mt-auto pt-6 border-t border-white/5">
+                <button onclick="attemptStartWorkout()" id="btn-main-action" class="w-full btn-coach py-4 rounded-xl font-bold">Start Today</button>
+                <p id="next-workout-timer" class="text-center text-xs text-slate-500 mt-3"></p>
+                <button onclick="handleRestartRequest()" class="block mx-auto mt-4 text-[10px] text-slate-600 uppercase tracking-widest hover:text-slate-400">Restart Program</button>
+            </div>
+        </div>
+
+        <!-- WORKOUT MODE -->
+        <div id="section-workout" class="hidden-section flex flex-col h-full fade-in">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 id="workout-day-title" class="text-xl font-bold">Today's Session</h2>
+                    <p id="workout-step-info" class="text-slate-500 text-xs uppercase tracking-tighter">Set 1 of 9</p>
+                </div>
+                <button onclick="confirmQuitWorkout()" class="p-2 text-slate-500 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div id="coach-bubble" class="bg-indigo-600/20 border border-indigo-500/30 rounded-2xl p-5 mb-6 relative">
+                <p id="coach-text" class="text-indigo-100 font-medium italic">"Get ready!"</p>
+                <div class="absolute -bottom-2 left-8 w-4 h-4 bg-indigo-900 border-r border-b border-indigo-500/30 rotate-45"></div>
+            </div>
+
+            <div id="workout-content" class="flex-grow flex flex-col items-center justify-center text-center space-y-6">
+                <div id="exercise-media" class="w-full aspect-video rounded-3xl bg-slate-800 overflow-hidden shadow-xl border border-white/5">
+                    <img id="workout-gif" src="" class="w-full h-full object-cover" alt="Workout">
+                </div>
+                <div id="timer-display" class="hidden py-4">
+                    <span id="countdown-val" class="text-7xl font-black text-white tabular-nums">30</span>
+                </div>
+                <div id="rep-display">
+                    <h3 id="workout-ex-name" class="text-3xl font-black">Exercise</h3>
+                    <p id="workout-ex-target" class="text-indigo-400 text-xl font-bold">12 Reps</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <button id="btn-workout-next" onclick="handleWorkoutProgress()" class="w-full btn-coach py-5 rounded-2xl font-bold text-xl">I'm Ready</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-alert" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6">
+        <div class="glass w-full max-w-sm rounded-3xl p-8 text-center space-y-6">
+            <h3 class="text-2xl font-bold text-amber-400">Rest Up!</h3>
+            <p id="alert-msg" class="text-slate-300">Recovery is where you grow! Please wait 12 hours between sessions.</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-alert')" class="flex-1 bg-slate-800 py-3 rounded-xl font-bold">Go Back</button>
+                <button onclick="forceStartWorkout()" class="flex-1 border border-white/10 py-3 rounded-xl font-bold text-slate-400 text-sm">Start Anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-quit" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6">
+        <div class="glass w-full max-w-sm rounded-3xl p-8 text-center space-y-6">
+            <h3 class="text-2xl font-bold text-white">Cancel Session?</h3>
+            <p class="text-slate-300">Are you sure you want to stop? Your progress for today's session will be lost.</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-quit')" class="flex-1 bg-slate-800 py-3 rounded-xl font-bold">Resume</button>
+                <button onclick="performQuitWorkout()" class="flex-1 btn-coach py-3 rounded-xl font-bold">Yes, Quit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-reset" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6">
+        <div class="glass w-full max-w-sm rounded-3xl p-8 text-center space-y-6">
+            <h3 class="text-2xl font-bold text-red-500">Restart?</h3>
+            <p class="text-slate-300">This will clear all progress and history. You will start over from the level detection.</p>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-reset')" class="flex-1 bg-slate-800 py-3 rounded-xl font-bold">Cancel</button>
+                <button id="btn-confirm-reset" onclick="performResetApp()" class="flex-1 bg-red-600 py-3 rounded-xl font-bold hover:bg-red-700 transition-colors">Reset All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const LEVELS = {
+            'beginner': { title: 'Beginner', desc: 'Perfecting form and building consistent habits.' },
+            'intermediate': { title: 'Intermediate', desc: 'Building muscle and stamina.' },
+            'professional': { title: 'Professional', desc: 'High volume and explosive movements.' }
+        };
+
+        const EXERCISES = {
+            'push': { name: 'Push-ups', beginner: { name: 'Incline Push-ups', reps: 10, gif: 'incline_pushup.gif' }, intermediate: { name: 'Floor Push-ups', reps: 15, gif: 'pushup.gif' }, professional: { name: 'Diamond Push-ups', reps: 20, gif: 'diamond_pushup.gif' } },
+            'pull': { name: 'Rows', beginner: { name: 'Wall Rows', reps: 12, gif: 'wall_row.gif' }, intermediate: { name: 'Table Rows', reps: 10, gif: 'table_row.gif' }, professional: { name: 'Pull-ups', reps: 8, gif: 'pullup.gif' } },
+            'tri': { name: 'Triceps', beginner: { name: 'Bench Dips (Knees)', reps: 10, gif: 'bench_dip.gif' }, intermediate: { name: 'Bench Dips', reps: 12, gif: 'bench_dip.gif' }, professional: { name: 'Pike Push-ups', reps: 10, gif: 'pike_pushup.gif' } },
+            'squat': { name: 'Squats', beginner: { name: 'Chair Squats', reps: 15, gif: 'squat.gif' }, intermediate: { name: 'Air Squats', reps: 20, gif: 'squat.gif' }, professional: { name: 'Jump Squats', reps: 15, gif: 'jump_squat.gif' } },
+            'lunge': { name: 'Lunges', beginner: { name: 'Assisted Lunges', reps: 10, gif: 'lunge.gif' }, intermediate: { name: 'Reverse Lunges', reps: 12, gif: 'lunge.gif' }, professional: { name: 'Jumping Lunges', reps: 10, gif: 'jump_lunge.gif' } },
+            'post': { name: 'Posterior', beginner: { name: 'Glute Bridges', reps: 15, gif: 'glute_bridge.gif' }, intermediate: { name: 'Single-Leg Bridges', reps: 12, gif: 'glute_bridge.gif' }, professional: { name: 'Nordic Curls', reps: 6, gif: 'nordic.gif' } },
+            'plank': { name: 'Static Core', beginner: { name: 'Knee Plank', time: 30, gif: 'plank.gif' }, intermediate: { name: 'Full Plank', time: 45, gif: 'plank.gif' }, professional: { name: 'Hollow Body Hold', time: 60, gif: 'hollow_hold.gif' } },
+            'core': { name: 'Dynamic Core', beginner: { name: 'Crunches', reps: 15, gif: 'crunch.gif' }, intermediate: { name: 'Leg Raises', reps: 12, gif: 'leg_raise.gif' }, professional: { name: 'V-Ups', reps: 12, gif: 'vup.gif' } },
+            'cardio': { name: 'Cardio', beginner: { name: 'High Knees', time: 30, gif: 'high_knees.gif' }, intermediate: { name: 'Mountain Climbers', time: 45, gif: 'mountain_climbers.gif' }, professional: { name: 'Burpees', time: 45, gif: 'burpees.gif' } }
+        };
+
+        const ROTATION = [['push', 'pull', 'tri'], ['squat', 'lunge', 'post'], ['plank', 'core', 'cardio'], 'rest'];
+
+        const COACH_PHRASES = {
+            prep: ["Ready for the next one?", "Get in position for {name}.", "Clear some space.", "Catch your breath."],
+            work: ["Let's go! Focus on form.", "Keep pushing!", "Stay strong.", "Control it."],
+            rest: ["Great set!", "Recover well.", "Deep breaths.", "One set closer."],
+            finish: ["Workout complete! Proud of you.", "You crushed Day {day}!", "Rest up."]
+        };
+
+        let state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null };
+
+        function showScreen(screenId) {
+            ['section-onboarding', 'section-calendar', 'section-workout'].forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden-section');
+            });
+            const target = document.getElementById(screenId);
+            if (target) target.classList.remove('hidden-section');
+        }
+
+        function nextStep(current, next) {
+            const curEl = document.getElementById(`step-${current}`);
+            const nxtEl = document.getElementById(`step-${next}`);
+            if (!curEl || !nxtEl) return;
+            curEl.classList.add('fade-out');
+            setTimeout(() => {
+                curEl.classList.add('hidden-section'); curEl.classList.remove('fade-out');
+                nxtEl.classList.remove('hidden-section'); nxtEl.classList.add('fade-in');
+            }, 400);
+        }
+
+        function saveAnswer(key, val, current, next) {
+            state.answers[key] = val; nextStep(current, next);
+        }
+
+        function calculateAndShowResult(plankVal) {
+            state.answers.plank = plankVal;
+            const { pushups, dips } = state.answers;
+            if (pushups >= 30 && dips >= 20) state.level = 'professional';
+            else if (pushups >= 10 || dips >= 5) state.level = 'intermediate';
+            else state.level = 'beginner';
+            const l = LEVELS[state.level];
+            document.getElementById('result-level-title').innerText = l.title;
+            document.getElementById('result-level-desc').innerText = l.desc;
+            nextStep('q3', 'result');
+        }
+
+        function restartOnboarding() {
+            state.answers = {};
+            state.level = null;
+            const curEl = document.getElementById('step-result');
+            const nxtEl = document.getElementById('step-intro'); // Back to very start
+            curEl.classList.add('fade-out');
+            setTimeout(() => {
+                curEl.classList.add('hidden-section'); curEl.classList.remove('fade-out');
+                nxtEl.classList.remove('hidden-section'); nxtEl.classList.add('fade-in');
+            }, 400);
+        }
+
+        function finalizeOnboarding() {
+            saveState(); renderCalendar(); showScreen('section-calendar');
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            for(let i = 1; i <= 28; i++) {
+                const isCompleted = state.completedDays.includes(i);
+                const isCurrent = i === state.day;
+                const card = document.createElement('div');
+                card.className = `day-card p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50 text-center relative ${isCompleted ? 'day-complete' : ''} ${isCurrent ? 'day-current' : ''}`;
+                card.innerHTML = `<span class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Day ${i}</span><div class="text-xl">${i%4===0 ? '☕' : (isCompleted ? '✅' : i)}</div>`;
+                if (isCurrent) card.innerHTML += '<div class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full animate-pulse"></div>';
+                if (i <= state.day) card.onclick = () => { if (i === state.day) attemptStartWorkout(); };
+                else card.style.opacity = '0.3';
+                grid.appendChild(card);
+            }
+            document.getElementById('calendar-subtitle').innerText = `Day ${state.day} of 28`;
+            const progress = Math.round((state.completedDays.length / 28) * 100);
+            document.getElementById('overall-progress-pct').innerText = progress + '%';
+            document.getElementById('overall-progress-bar').style.width = progress + '%';
+            document.getElementById('btn-main-action').innerText = state.day%4===0 ? "Enjoy Rest Day" : `Start Day ${state.day}`;
+            updateCountdownTimer();
+        }
+
+        function attemptStartWorkout() {
+            const diff = Date.now() - state.lastWorkoutTime;
+            if (state.lastWorkoutTime > 0 && diff < 12 * 60 * 60 * 1000) {
+                document.getElementById('modal-alert').classList.remove('hidden'); return;
+            }
+            forceStartWorkout();
+        }
+
+        function forceStartWorkout() {
+            closeModal('modal-alert');
+            const rotationIdx = (state.day - 1) % 4;
+            const exercises = ROTATION[rotationIdx];
+            if (exercises === 'rest') {
+                state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now();
+                saveState(); renderCalendar(); return;
+            }
+            
+            if (!state.level) {
+                showScreen('onboarding');
+                return;
+            }
+
+            const week = Math.ceil(state.day / 7);
+            const setsPerEx = week > 1 ? 4 : 3;
+            const steps = [];
+            exercises.forEach(exKey => {
+                const exData = EXERCISES[exKey][state.level];
+                if (exData) {
+                    for(let s = 1; s <= setsPerEx; s++) steps.push({ ...exData, set: s, totalSets: setsPerEx });
+                }
+            });
+            state.active = { steps, index: 0, phase: 'prep' };
+            showScreen('section-workout'); renderWorkoutStep();
+        }
+
+        function renderWorkoutStep() {
+            if (!state.active) return;
+            const step = state.active.steps[state.active.index];
+            const phase = state.active.phase;
+            document.getElementById('workout-step-info').innerText = `Set ${state.active.index + 1} of ${state.active.steps.length}`;
+            const gif = document.getElementById('workout-gif'); gif.src = step.gif;
+            document.getElementById('workout-ex-name').innerText = step.name;
+            const coachText = document.getElementById('coach-text');
+            const timerDisplay = document.getElementById('timer-display');
+            const repDisplay = document.getElementById('rep-display');
+            const btn = document.getElementById('btn-workout-next');
+
+            if (phase === 'prep') {
+                coachText.innerText = getPhrase('prep', step.name);
+                timerDisplay.classList.add('hidden'); repDisplay.classList.remove('hidden');
+                document.getElementById('workout-ex-target').innerText = `Goal: ${step.time ? step.time+'s Hold' : step.reps+' Reps'}`;
+                btn.innerText = "Ready, Coach";
+            } else if (phase === 'work') {
+                coachText.innerText = getPhrase('work');
+                if (step.time) {
+                    repDisplay.classList.add('hidden'); timerDisplay.classList.remove('hidden');
+                    startCountdown(step.time, () => handleWorkoutProgress());
+                    btn.innerText = "Done";
+                } else btn.innerText = "Finished Set";
+            } else if (phase === 'rest') {
+                coachText.innerText = getPhrase('rest');
+                repDisplay.classList.add('hidden'); timerDisplay.classList.remove('hidden');
+                const week = Math.ceil(state.day / 7);
+                startCountdown(Math.max(15, 60 - (week-1)*15), () => handleWorkoutProgress());
+                btn.innerText = "Skip Rest";
+            }
+        }
+
+        function handleWorkoutProgress() {
+            clearInterval(window.workoutTimer);
+            if (state.active.phase === 'prep') state.active.phase = 'work';
+            else if (state.active.phase === 'work') {
+                if (state.active.index === state.active.steps.length - 1) { finishWorkout(); return; }
+                state.active.phase = 'rest';
+            } else if (state.active.phase === 'rest') {
+                state.active.index++; state.active.phase = 'prep';
+            }
+            renderWorkoutStep();
+        }
+
+        function startCountdown(duration, callback) {
+            let left = duration;
+            const el = document.getElementById('countdown-val');
+            el.innerText = left;
+            window.workoutTimer = setInterval(() => {
+                left--; el.innerText = left;
+                if (left <= 0) { clearInterval(window.workoutTimer); if(callback) callback(); }
+            }, 1000);
+        }
+
+        function finishWorkout() {
+            state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now();
+            state.active = null; saveState(); renderCalendar(); showScreen('section-calendar');
+            setTimeout(() => {
+                alert(getPhrase('finish', '').replace('{day}', state.day - 1));
+            }, 100);
+        }
+
+        function confirmQuitWorkout() {
+            document.getElementById('modal-quit').classList.remove('hidden');
+        }
+
+        function performQuitWorkout() {
+            clearInterval(window.workoutTimer);
+            state.active = null;
+            closeModal('modal-quit');
+            showScreen('section-calendar');
+        }
+
+        function handleRestartRequest() {
+            document.getElementById('modal-reset').classList.remove('hidden');
+        }
+
+        function performResetApp() {
+            // 1. Wipe storage
+            localStorage.removeItem('core28_coach');
+            
+            // 2. Wipe state
+            state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null };
+            
+            // 3. Reset Questionnaire steps manually before reload
+            document.querySelectorAll('.onboarding-step').forEach(s => s.classList.add('hidden-section'));
+            document.getElementById('step-intro').classList.remove('hidden-section');
+            
+            // 4. Force screen change
+            showScreen('section-onboarding');
+            
+            // 5. Close modal
+            closeModal('modal-reset');
+
+            // 6. Hard reload to ensure clean cache
+            setTimeout(() => {
+                window.location.reload();
+            }, 50);
+        }
+
+        function getPhrase(type, name) {
+            let p = COACH_PHRASES[type][Math.floor(Math.random()*COACH_PHRASES[type].length)];
+            return p.replace('{name}', name || '');
+        }
+
+        function saveState() { 
+            localStorage.setItem('core28_coach', JSON.stringify(state)); 
+        }
+        
+        function loadState() {
+            const saved = localStorage.getItem('core28_coach');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && typeof parsed === 'object') {
+                    state = parsed;
+                    if (state.level) { 
+                        renderCalendar(); 
+                        showScreen('section-calendar'); 
+                        return;
+                    }
+                }
+            }
+            // If no state or no level, ensure we start at the very first step
+            document.querySelectorAll('.onboarding-step').forEach(s => s.classList.add('hidden-section'));
+            document.getElementById('step-intro').classList.remove('hidden-section');
+            showScreen('section-onboarding');
+        }
+
+        function updateCountdownTimer() {
+            if (state.lastWorkoutTime === 0) return;
+            const diff = (state.lastWorkoutTime + 86400000) - Date.now();
+            const el = document.getElementById('next-workout-timer');
+            if (el) {
+                if (diff <= 0) el.innerText = "Coach says: You're ready!";
+                else {
+                    const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
+                    el.innerText = `Recovery done in ${h}h ${m}m`;
+                }
+            }
+        }
+
+        function closeModal(id) { 
+            document.getElementById(id).classList.add('hidden'); 
+        }
+
+        window.onload = loadState;
+        setInterval(updateCountdownTimer, 60000);
+    </script>
+</body>
+</html>
