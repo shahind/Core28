@@ -22,6 +22,10 @@
         .progress-bar-inner { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        /* Pulse for active workout */
+        .pulse-border { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { border-color: rgba(99, 102, 241, 0.2); } 50% { border-color: rgba(99, 102, 241, 0.6); } 100% { border-color: rgba(99, 102, 241, 0.2); } }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -100,7 +104,7 @@
             </div>
             
             <div id="calendar-grid" class="grid grid-cols-4 gap-3 overflow-y-auto max-h-[420px] p-2 custom-scrollbar">
-                <!-- Days injected via JS -->
+                <!-- Days injected JS -->
             </div>
 
             <div class="mt-auto pt-8 border-t border-white/5">
@@ -125,8 +129,8 @@
                 <p id="coach-text" class="text-indigo-100 font-bold italic text-sm leading-relaxed">"Quality over speed."</p>
             </div>
             <div id="workout-content" class="flex-grow flex flex-col items-center justify-center text-center space-y-6">
-                <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10">
-                    <img id="workout-gif" src="" class="w-full h-full object-cover" alt="Workout" onerror="this.src='https://via.placeholder.com/400x400?text=GIF'">
+                <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
+                    <img id="workout-gif" src="" class="w-full h-full object-cover" alt="Workout" onerror="handleMediaError(this)">
                 </div>
                 <div id="timer-display" class="hidden py-4">
                     <span id="countdown-val" class="text-9xl font-black text-white tabular-nums tracking-tighter">30</span>
@@ -186,7 +190,7 @@
             },
             'h_pull': {
                 beginner: { name: 'Doorway Rows', reps: 12, gif: 'img/doorway_chest_stretch.gif' },
-                intermediate: { name: 'Table Rows', reps: 8, gif: 'img/table_row.gif' },
+                intermediate: { name: 'Inverted Rows (Chair)', reps: 8, gif: 'img/table_row.gif' },
                 professional: { name: 'Archer Push-ups', reps: 6, gif: 'img/archer_push-up.gif' }
             },
             'knee': {
@@ -228,8 +232,12 @@
 
         // NAVIGATION
         function showScreen(screenId) {
-            ['section-onboarding', 'section-calendar', 'section-workout'].forEach(s => document.getElementById(s)?.classList.add('hidden-section'));
-            document.getElementById(screenId)?.classList.remove('hidden-section');
+            ['section-onboarding', 'section-calendar', 'section-workout'].forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden-section');
+            });
+            const target = document.getElementById(screenId);
+            if (target) target.classList.remove('hidden-section');
         }
 
         function nextStep(current, next) {
@@ -242,6 +250,31 @@
             }, 400);
         }
 
+        // MEDIA HANDLING (FALLBACK)
+        function handleMediaError(img) {
+            // If the local gif doesn't exist, show a clean SVG placeholder
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if (!parent.querySelector('.fallback-icon')) {
+                const icon = document.createElement('div');
+                icon.className = 'fallback-icon text-indigo-500/20';
+                icon.innerHTML = `
+                    <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L18.43 17L20.57 14.86M10.14 12.14L15.5 6.78L17.22 8.5L11.86 13.86L10.14 12.14M22 2V12H20V5.41L11.12 14.29L12.54 15.71L11.12 17.12L12.54 18.54L11.12 19.95L9.71 18.54L8.29 19.95L1.22 12.88L2.64 11.46L1.22 10.05L2.64 8.64L4.05 10.05L5.46 8.64L6.88 10.05L14.09 2.84L15.5 4.25L16.91 2.84L18.33 4.25L22 0.59V2Z" />
+                    </svg>
+                    <p class="text-[10px] uppercase font-bold tracking-tighter mt-2 text-slate-500">Visual unavailable</p>
+                `;
+                parent.appendChild(icon);
+            }
+        }
+
+        function resetMedia() {
+            const gif = document.getElementById('workout-gif');
+            gif.style.display = 'block';
+            const fallback = gif.parentElement.querySelector('.fallback-icon');
+            if (fallback) fallback.remove();
+        }
+
         // ASSESSMENT
         function saveAnswer(key, val, current, next) { state.answers[key] = val; nextStep(current, next); }
 
@@ -251,7 +284,6 @@
             const pull = state.answers.pulls;
             const core = state.answers.core;
             
-            // Weakest Link logic
             if (push === 0 || pull === 0 || core === 0) state.level = 'beginner';
             else if (push >= 2 && pull >= 2 && core >= 2) state.level = 'professional';
             else state.level = 'intermediate';
@@ -263,7 +295,13 @@
 
         function finalizeOnboarding() { saveState(); renderCalendar(); showScreen('section-calendar'); }
 
-        // CALENDAR LOGIC (NEW VISUALS)
+        function restartOnboarding() {
+            state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null };
+            saveState();
+            window.location.reload();
+        }
+
+        // CALENDAR
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
             for(let i = 1; i <= 28; i++) {
@@ -274,7 +312,6 @@
                 const card = document.createElement('div');
                 card.className = `day-card p-4 rounded-3xl text-center relative flex flex-col items-center justify-center min-h-[90px] ${isCompleted ? 'day-complete' : ''} ${isCurrent ? 'day-current' : ''} ${isRestDay ? 'day-rest' : 'bg-slate-800/40'}`;
                 
-                // HEADER logic (Day vs Rest)
                 const headerText = isRestDay ? `REST` : `DAY`;
                 const centerVal = isRestDay ? `☕` : i;
                 const dayNumDisplay = isRestDay ? `<span class="text-[9px] mt-0.5 opacity-60">${i}</span>` : '';
@@ -295,11 +332,22 @@
             const progress = Math.round((state.completedDays.length / 28) * 100);
             document.getElementById('overall-progress-pct').innerText = progress + '%';
             document.getElementById('overall-progress-bar').style.width = progress + '%';
-            document.getElementById('btn-main-action').innerText = state.day % 4 === 0 ? "Enjoy Rest Day" : `Start Session ${state.day}`;
+            
+            const btn = document.getElementById('btn-main-action');
+            if (state.day > 28) {
+                btn.innerText = "CYCLE COMPLETE";
+                btn.onclick = handleRestartRequest;
+            } else {
+                btn.innerText = state.day % 4 === 0 ? "Enjoy Rest Day" : `Start Session ${state.day}`;
+            }
             updateCountdownTimer();
         }
 
         function attemptStartWorkout() {
+            if (state.day % 4 === 0) {
+                 completeRestDay();
+                 return;
+            }
             const diff = Date.now() - state.lastWorkoutTime;
             if (state.lastWorkoutTime > 0 && diff < 12 * 60 * 60 * 1000) {
                 document.getElementById('modal-alert').classList.remove('hidden'); return;
@@ -307,16 +355,19 @@
             forceStartWorkout();
         }
 
+        function completeRestDay() {
+            state.completedDays.push(state.day); 
+            state.day++; 
+            state.lastWorkoutTime = Date.now();
+            saveState(); 
+            renderCalendar();
+        }
+
         // WORKOUT ENGINE
         function forceStartWorkout() {
             closeModal('modal-alert');
-            if (state.day % 4 === 0) { 
-                state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now();
-                saveState(); renderCalendar(); return;
-            }
-            
             const week = Math.ceil(state.day / 7);
-            const blockDay = (state.day - 1) % 4; // 0, 1, 2
+            const blockDay = (state.day - 1) % 4; 
             
             let sets = week >= 3 ? 4 : 3;
             let rest = blockDay === 0 ? 90 : (blockDay === 1 ? 60 : 45);
@@ -334,7 +385,8 @@
             });
             
             state.active = { steps, index: 0, phase: 'prep' };
-            showScreen('section-workout'); renderWorkoutStep();
+            showScreen('section-workout'); 
+            renderWorkoutStep();
         }
 
         function renderWorkoutStep() {
@@ -344,8 +396,11 @@
             
             document.getElementById('workout-day-title').innerText = `Day ${state.day} Session`;
             document.getElementById('workout-step-info').innerText = `Pattern ${Math.floor(state.active.index / step.totalSets) + 1}/6 • Set ${step.set}/${step.totalSets}`;
+            
+            resetMedia();
             document.getElementById('workout-gif').src = step.gif;
             document.getElementById('workout-ex-name').innerText = step.name;
+            
             const coachText = document.getElementById('coach-text');
             const timerDisplay = document.getElementById('timer-display');
             const repDisplay = document.getElementById('rep-display');
@@ -394,9 +449,24 @@
         }
 
         function finishWorkout() {
-            state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now();
-            state.active = null; saveState(); renderCalendar(); showScreen('section-calendar');
-            setTimeout(() => alert(getPhrase('finish').replace('{day}', state.day - 1)), 400);
+            state.completedDays.push(state.day); 
+            state.day++; 
+            state.lastWorkoutTime = Date.now();
+            const finishedDayNum = state.day - 1;
+            state.active = null; 
+            saveState(); 
+            renderCalendar(); 
+            showScreen('section-calendar');
+            
+            // Custom finishing message
+            const coachText = getPhrase('finish').replace('{day}', finishedDayNum);
+            setTimeout(() => {
+                const msg = document.createElement('div');
+                msg.className = 'fixed top-10 left-1/2 -translate-x-1/2 glass px-6 py-4 rounded-full z-[100] border-indigo-500 fade-in';
+                msg.innerHTML = `<p class="text-indigo-400 font-bold italic">${coachText}</p>`;
+                document.body.appendChild(msg);
+                setTimeout(() => { msg.classList.add('fade-out'); setTimeout(() => msg.remove(), 500); }, 3000);
+            }, 500);
         }
 
         // UTILS
@@ -413,7 +483,17 @@
             if (state.lastWorkoutTime === 0) return;
             const diff = (state.lastWorkoutTime + 86400000) - Date.now();
             const el = document.getElementById('next-workout-timer');
-            if (el) el.innerText = diff <= 0 ? "COACH: SESSION WINDOW OPEN" : `COACH RECOVERY: ${Math.floor(diff/3600000)}H REMAINING`;
+            if (el) {
+                if (diff <= 0) {
+                    el.innerText = "COACH: SESSION WINDOW OPEN";
+                    el.className = "text-center text-[10px] text-indigo-400 mt-4 font-black tracking-widest uppercase animate-pulse";
+                } else {
+                    const hours = Math.floor(diff/3600000);
+                    const mins = Math.floor((diff % 3600000) / 60000);
+                    el.innerText = `COACH RECOVERY: ${hours}H ${mins}M REMAINING`;
+                    el.className = "text-center text-[10px] text-slate-600 mt-4 font-black tracking-widest uppercase";
+                }
+            }
         }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function handleRestartRequest() { document.getElementById('modal-reset').classList.remove('hidden'); }
@@ -426,7 +506,7 @@
         }
 
         window.onload = loadState;
-        setInterval(updateCountdownTimer, 60000);
+        setInterval(updateCountdownTimer, 30000);
     </script>
 </body>
 </html>
