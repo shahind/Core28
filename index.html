@@ -22,14 +22,13 @@
         .progress-bar-inner { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        .gif-frozen { filter: grayscale(1) opacity(0.5); pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div id="app" class="w-full max-w-lg glass rounded-[2.5rem] p-8 shadow-2xl relative min-h-[650px] flex flex-col border border-white/10">
         
-        <!-- ONBOARDING SECTION (Intro & Assessment) -->
+        <!-- ONBOARDING SECTION -->
         <div id="section-onboarding" class="flex-grow flex flex-col justify-center">
             <div id="step-intro" class="onboarding-step space-y-8 py-10 text-center">
                 <div class="space-y-4">
@@ -127,7 +126,7 @@
                 <!-- EXERCISE MEDIA AREA (Hidden during rest) -->
                 <div id="exercise-media-container" class="w-full flex flex-col items-center space-y-6">
                     <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
-                        <img id="workout-gif" src="" class="w-full h-full object-cover gif-frozen" alt="Workout" onerror="handleMediaError(this)">
+                        <img id="workout-gif" src="" class="w-full h-full object-cover" alt="Workout" onerror="handleMediaError(this)">
                     </div>
                     <div id="rep-display">
                         <h3 id="workout-ex-name" class="text-3xl font-black leading-tight uppercase tracking-tighter text-slate-100">Exercise</h3>
@@ -338,25 +337,32 @@
             if (phase === 'prep') {
                 mediaContainer.classList.remove('hidden-section');
                 timerDisplay.classList.add('hidden');
+                
+                // Show exercise as static first or just ensure it's loaded
                 gifEl.src = step.gif;
-                gifEl.classList.add('gif-frozen');
+                gifEl.style.opacity = "0.4"; // Visual cue it's the prep phase
+                
                 document.getElementById('workout-ex-name').innerText = step.name;
                 document.getElementById('workout-ex-target').innerText = step.time ? `${step.time}s` : `${step.reps} Reps`;
                 coachText.innerText = getPhrase('prep', step.name);
                 btn.innerText = "Begin Set";
             } else if (phase === 'work') {
-                gifEl.classList.remove('gif-frozen');
+                mediaContainer.classList.remove('hidden-section');
+                timerDisplay.classList.add('hidden');
+                
+                // RESTORED GIF LOGIC: Force reload gif on work start
                 gifEl.src = step.gif + "?t=" + Date.now();
+                gifEl.style.opacity = "1";
+                
                 coachText.innerText = getPhrase('work');
                 if (step.time) {
                     startCountdown(step.time, handleWorkoutProgress);
                     btn.innerText = "Holding...";
                 } else btn.innerText = "Done";
             } else if (phase === 'rest') {
-                mediaContainer.classList.add('hidden-section'); // HIDE GIF during rest
+                mediaContainer.classList.add('hidden-section'); // Keep hidden during rest
                 timerDisplay.classList.remove('hidden');
                 
-                // Show preview of next set/exercise
                 const nextStep = state.active.steps[state.active.index + 1];
                 if(nextStep) document.getElementById('next-ex-name').innerText = nextStep.name;
 
