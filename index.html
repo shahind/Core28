@@ -22,11 +22,6 @@
         .progress-bar-inner { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        
-        .pulse-border { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { border-color: rgba(99, 102, 241, 0.2); } 50% { border-color: rgba(99, 102, 241, 0.6); } 100% { border-color: rgba(99, 102, 241, 0.2); } }
-
-        /* Class to simulate "paused" GIF look (frozen at first frame or desaturated) */
         .gif-frozen { filter: grayscale(1) opacity(0.5); pointer-events: none; }
     </style>
 </head>
@@ -34,7 +29,7 @@
 
     <div id="app" class="w-full max-w-lg glass rounded-[2.5rem] p-8 shadow-2xl relative min-h-[650px] flex flex-col border border-white/10">
         
-        <!-- ONBOARDING SECTION -->
+        <!-- ONBOARDING SECTION (Intro & Assessment) -->
         <div id="section-onboarding" class="flex-grow flex flex-col justify-center">
             <div id="step-intro" class="onboarding-step space-y-8 py-10 text-center">
                 <div class="space-y-4">
@@ -49,7 +44,7 @@
             </div>
 
             <div id="step-q1" class="onboarding-step hidden-section space-y-8">
-                <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Push Capacity</span><h2 class="text-3xl font-black mt-2">Max Push-ups?</h2><p class="text-slate-500 text-sm mt-1">Full range of motion, chest to floor.</p></div>
+                <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Push Capacity</span><h2 class="text-3xl font-black mt-2">Max Push-ups?</h2></div>
                 <div class="grid gap-3">
                     <button onclick="saveAnswer('pushups', 0, 'q1', 'q2')" class="w-full p-5 bg-slate-800/40 border border-slate-700/50 rounded-2xl text-left hover:border-indigo-500 transition-all font-semibold">0 - 8 Reps</button>
                     <button onclick="saveAnswer('pushups', 1, 'q1', 'q2')" class="w-full p-5 bg-slate-800/40 border border-slate-700/50 rounded-2xl text-left hover:border-indigo-500 transition-all font-semibold">9 - 20 Reps</button>
@@ -59,7 +54,7 @@
             </div>
 
             <div id="step-q2" class="onboarding-step hidden-section space-y-8">
-                <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Pull Capacity</span><h2 class="text-3xl font-black mt-2">Max Pull-ups?</h2><p class="text-slate-500 text-sm mt-1">Dead hang to chin over bar.</p></div>
+                <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Pull Capacity</span><h2 class="text-3xl font-black mt-2">Max Pull-ups?</h2></div>
                 <div class="grid gap-3">
                     <button onclick="saveAnswer('pulls', 0, 'q2', 'q3')" class="w-full p-5 bg-slate-800/40 border border-slate-700/50 rounded-2xl text-left hover:border-indigo-500 transition-all font-semibold">0 - 1 Reps</button>
                     <button onclick="saveAnswer('pulls', 1, 'q2', 'q3')" class="w-full p-5 bg-slate-800/40 border border-slate-700/50 rounded-2xl text-left hover:border-indigo-500 transition-all font-semibold">2 - 6 Reps</button>
@@ -69,7 +64,7 @@
             </div>
 
             <div id="step-q3" class="onboarding-step hidden-section space-y-8">
-                <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Core Stability</span><h2 class="text-3xl font-black mt-2">Max Plank?</h2><p class="text-slate-500 text-sm mt-1">Perfect line, no sagging hips.</p></div>
+                <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Core Stability</span><h2 class="text-3xl font-black mt-2">Max Plank?</h2></div>
                 <div class="grid gap-3">
                     <button onclick="finalizePlacement(0)" class="w-full p-5 bg-slate-800/40 border border-slate-700/50 rounded-2xl text-left hover:border-indigo-500 transition-all font-semibold">< 45 Seconds</button>
                     <button onclick="finalizePlacement(1)" class="w-full p-5 bg-slate-800/40 border border-slate-700/50 rounded-2xl text-left hover:border-indigo-500 transition-all font-semibold">45s - 90s</button>
@@ -85,7 +80,6 @@
                     <p id="result-level-desc" class="text-slate-400 text-lg leading-relaxed px-4"></p>
                 </div>
                 <button onclick="finalizeOnboarding()" class="w-full btn-coach py-5 rounded-2xl font-black text-xl uppercase tracking-wider">Commit to 28 Days</button>
-                <button onclick="restartOnboarding()" class="w-full border border-white/10 py-4 rounded-2xl font-bold text-slate-500 hover:text-white transition-colors">Retest Assessment</button>
             </div>
         </div>
 
@@ -117,28 +111,41 @@
         <div id="section-workout" class="hidden-section flex flex-col h-full fade-in">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 id="workout-day-title" class="text-2xl font-black italic uppercase">Training</h2>
+                    <h2 id="workout-day-title" class="text-2xl font-black italic uppercase text-slate-100">Training</h2>
                     <p id="workout-step-info" class="text-indigo-400 text-[11px] font-black tracking-widest uppercase">Pattern 1/6 • Set 1</p>
                 </div>
                 <button onclick="confirmQuitWorkout()" class="p-2 text-slate-500 hover:text-white transition-colors">
                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
+            
             <div id="coach-bubble" class="bg-indigo-600/10 border border-indigo-500/20 rounded-3xl p-5 mb-6 relative">
                 <p id="coach-text" class="text-indigo-100 font-bold italic text-sm leading-relaxed">"Quality over speed."</p>
             </div>
+
             <div id="workout-content" class="flex-grow flex flex-col items-center justify-center text-center space-y-6">
-                <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
-                    <img id="workout-gif" src="" class="w-full h-full object-cover gif-frozen" alt="Workout" onerror="handleMediaError(this)">
+                <!-- EXERCISE MEDIA AREA (Hidden during rest) -->
+                <div id="exercise-media-container" class="w-full flex flex-col items-center space-y-6">
+                    <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
+                        <img id="workout-gif" src="" class="w-full h-full object-cover gif-frozen" alt="Workout" onerror="handleMediaError(this)">
+                    </div>
+                    <div id="rep-display">
+                        <h3 id="workout-ex-name" class="text-3xl font-black leading-tight uppercase tracking-tighter text-slate-100">Exercise</h3>
+                        <p id="workout-ex-target" class="text-indigo-400 text-5xl font-black mt-2">12 Reps</p>
+                    </div>
                 </div>
-                <div id="timer-display" class="hidden py-4">
-                    <span id="countdown-val" class="text-9xl font-black text-white tabular-nums tracking-tighter">30</span>
-                </div>
-                <div id="rep-display">
-                    <h3 id="workout-ex-name" class="text-3xl font-black leading-tight uppercase tracking-tighter">Exercise</h3>
-                    <p id="workout-ex-target" class="text-indigo-400 text-5xl font-black mt-2">12 Reps</p>
+
+                <!-- REST / TIMER AREA -->
+                <div id="timer-display" class="hidden flex flex-col items-center justify-center space-y-4">
+                    <p class="text-slate-500 font-black tracking-[0.2em] uppercase text-xs">Recovery</p>
+                    <span id="countdown-val" class="text-[10rem] font-black text-indigo-400 leading-none tabular-nums tracking-tighter">30</span>
+                    <div id="next-up-preview" class="pt-4">
+                        <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Next Up</p>
+                        <p id="next-ex-name" class="text-slate-200 font-bold italic"></p>
+                    </div>
                 </div>
             </div>
+
             <div class="mt-8">
                 <button id="btn-workout-next" onclick="handleWorkoutProgress()" class="w-full btn-coach py-6 rounded-[2rem] font-black text-2xl uppercase tracking-tighter">Begin Set</button>
             </div>
@@ -149,29 +156,29 @@
     <div id="modal-alert" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-6">
         <div class="glass w-full max-w-sm rounded-[2.5rem] p-10 text-center space-y-6 border-amber-500/20">
             <h3 class="text-3xl font-black text-amber-400 italic uppercase tracking-tighter">CNS Recovery</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">Neural recovery is vital for progression. Expert advice recommends 12h-24h between sessions.</p>
+            <p class="text-slate-300 text-sm leading-relaxed">Expert advice recommends 12h-24h between sessions for neural recovery.</p>
             <div class="flex flex-col gap-3">
                 <button onclick="closeModal('modal-alert')" class="w-full bg-slate-800 py-4 rounded-2xl font-bold">Heed Advice</button>
-                <button onclick="forceStartWorkout()" class="w-full text-slate-500 text-[10px] font-bold uppercase tracking-widest pt-2">Force Start Session</button>
+                <button onclick="forceStartWorkout()" class="w-full text-slate-500 text-[10px] font-bold uppercase tracking-widest pt-2">Force Start</button>
             </div>
         </div>
     </div>
 
     <div id="modal-reset" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-6">
         <div class="glass w-full max-w-sm rounded-[2.5rem] p-10 text-center space-y-6 border-red-500/20">
-            <h3 class="text-3xl font-black text-red-500 italic uppercase tracking-tighter">Reset App?</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">This will erase your placement and cycle history. It cannot be undone.</p>
+            <h3 class="text-3xl font-black text-red-500 italic uppercase tracking-tighter text-slate-100">Reset App?</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">This will erase all progress. It cannot be undone.</p>
             <div class="flex gap-3">
                 <button onclick="closeModal('modal-reset')" class="flex-1 bg-slate-800 py-4 rounded-2xl font-bold">Cancel</button>
-                <button onclick="performResetApp()" class="flex-1 bg-red-600 py-4 rounded-2xl font-bold">Reset All</button>
+                <button onclick="performResetApp()" class="flex-1 bg-red-600 py-4 rounded-2xl font-bold">Reset</button>
             </div>
         </div>
     </div>
 
     <div id="modal-quit" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-6">
         <div class="glass w-full max-w-sm rounded-[2.5rem] p-10 text-center space-y-6 border-white/10">
-            <h3 class="text-3xl font-black text-white italic uppercase tracking-tighter">End Session?</h3>
-            <p class="text-slate-300 text-sm leading-relaxed">Progress is saved only on completion. Are you sure you want to stop now?</p>
+            <h3 class="text-3xl font-black text-white italic uppercase tracking-tighter text-slate-100">End Session?</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">Progress is saved only on completion.</p>
             <div class="flex gap-3">
                 <button onclick="closeModal('modal-quit')" class="flex-1 bg-slate-800 py-4 rounded-2xl font-bold">Resume</button>
                 <button onclick="performQuitWorkout()" class="flex-1 btn-coach py-4 rounded-2xl font-bold">Quit</button>
@@ -180,7 +187,6 @@
     </div>
 
     <script>
-        // CONFIG
         const EXERCISES = {
             'h_push': { 
                 beginner: { name: 'Incline Push-ups', reps: 8, gif: 'img/incline_push-up.gif' },
@@ -216,27 +222,24 @@
 
         const PATTERN_KEYS = ['h_push', 'h_pull', 'knee', 'hip', 'v_push', 'core'];
         const LEVELS = {
-            'beginner': { title: 'FOUNDATION', desc: 'Focusing on tendon strength and perfect motor control. Mandatory starting point for novices.' },
-            'intermediate': { title: 'DEVELOPMENT', desc: 'Higher mechanical tension to stimulate myofibrillar hypertrophy.' },
-            'professional': { title: 'MASTERY', desc: 'Advanced biomechanics for maximum power and neural recruitment.' }
+            'beginner': { title: 'FOUNDATION', desc: 'Tendon strength and motor control focus.' },
+            'intermediate': { title: 'DEVELOPMENT', desc: 'Hypertrophy and mechanical tension focus.' },
+            'professional': { title: 'MASTERY', desc: 'Maximum power and neural recruitment focus.' }
         };
         const COACH_PHRASES = {
-            prep: ["Position for {name}.", "Control the negative phase.", "Ready for {name}?"],
-            work: ["Slow down the tempo.", "Breathe out as you push.", "Stay focused."],
-            rest: ["Oxygenate now.", "Ready for the next set?", "Eyes on the goal."],
-            finish: ["Day {day} complete. Growth phase activated.", "Consistency is the only secret."]
+            prep: ["Position for {name}.", "Slow tempo.", "Focus on the squeeze."],
+            work: ["Drive through!", "Breathe!", "Don't compromise form."],
+            rest: ["Deep breaths.", "Recover fully.", "Ready for next?"],
+            finish: ["Day {day} complete. Growth phase started."]
         };
 
         let state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null };
 
-        // NAVIGATION
         function showScreen(screenId) {
             ['section-onboarding', 'section-calendar', 'section-workout'].forEach(s => {
-                const el = document.getElementById(s);
-                if (el) el.classList.add('hidden-section');
+                document.getElementById(s).classList.add('hidden-section');
             });
-            const target = document.getElementById(screenId);
-            if (target) target.classList.remove('hidden-section');
+            document.getElementById(screenId).classList.remove('hidden-section');
         }
 
         function nextStep(current, next) {
@@ -255,27 +258,16 @@
             if (!parent.querySelector('.fallback-icon')) {
                 const icon = document.createElement('div');
                 icon.className = 'fallback-icon text-indigo-500/20';
-                icon.innerHTML = `<svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L18.43 17L20.57 14.86M10.14 12.14L15.5 6.78L17.22 8.5L11.86 13.86L10.14 12.14M22 2V12H20V5.41L11.12 14.29L12.54 15.71L11.12 17.12L12.54 18.54L11.12 19.95L9.71 18.54L8.29 19.95L1.22 12.88L2.64 11.46L1.22 10.05L2.64 8.64L4.05 10.05L5.46 8.64L6.88 10.05L14.09 2.84L15.5 4.25L16.91 2.84L18.33 4.25L22 0.59V2Z" /></svg><p class="text-[10px] uppercase font-bold tracking-tighter mt-2 text-slate-500">Visual unavailable</p>`;
+                icon.innerHTML = `<svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>`;
                 parent.appendChild(icon);
             }
         }
 
-        function resetMedia() {
-            const gif = document.getElementById('workout-gif');
-            gif.style.display = 'block';
-            gif.classList.add('gif-frozen'); // Reset to frozen state
-            const fallback = gif.parentElement.querySelector('.fallback-icon');
-            if (fallback) fallback.remove();
-        }
-
-        // ASSESSMENT
         function saveAnswer(key, val, current, next) { state.answers[key] = val; nextStep(current, next); }
 
         function finalizePlacement(coreVal) {
             state.answers.core = coreVal;
-            const push = state.answers.pushups;
-            const pull = state.answers.pulls;
-            const core = state.answers.core;
+            const push = state.answers.pushups, pull = state.answers.pulls, core = state.answers.core;
             if (push === 0 || pull === 0 || core === 0) state.level = 'beginner';
             else if (push >= 2 && pull >= 2 && core >= 2) state.level = 'professional';
             else state.level = 'intermediate';
@@ -285,106 +277,92 @@
         }
 
         function finalizeOnboarding() { saveState(); renderCalendar(); showScreen('section-calendar'); }
-        function restartOnboarding() { state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null }; saveState(); window.location.reload(); }
 
-        // CALENDAR
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
             for(let i = 1; i <= 28; i++) {
+                const card = document.createElement('div');
                 const isCompleted = state.completedDays.includes(i);
                 const isCurrent = i === state.day;
-                const isRestDay = i % 4 === 0;
-                const card = document.createElement('div');
-                card.className = `day-card p-4 rounded-3xl text-center relative flex flex-col items-center justify-center min-h-[90px] ${isCompleted ? 'day-complete' : ''} ${isCurrent ? 'day-current' : ''} ${isRestDay ? 'day-rest' : 'bg-slate-800/40'}`;
-                const headerText = isRestDay ? `REST` : `DAY`;
-                const centerVal = isRestDay ? `☕` : i;
-                const dayNumDisplay = isRestDay ? `<span class="text-[9px] mt-0.5 opacity-60">${i}</span>` : '';
-                card.innerHTML = `<span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">${headerText}</span><div class="text-2xl font-black mt-1 ${isRestDay ? 'grayscale opacity-80' : ''}">${centerVal}</div>${dayNumDisplay}`;
-                if (i <= state.day) card.onclick = () => { if (i === state.day) attemptStartWorkout(); };
+                const isRest = i % 4 === 0;
+                card.className = `day-card p-4 rounded-3xl text-center relative flex flex-col items-center justify-center min-h-[90px] ${isCompleted ? 'day-complete' : ''} ${isCurrent ? 'day-current' : ''} ${isRest ? 'day-rest' : 'bg-slate-800/40'}`;
+                card.innerHTML = `<span class="text-[9px] uppercase font-black text-slate-500">${isRest ? 'REST' : 'DAY'}</span><div class="text-2xl font-black">${isRest ? '☕' : i}</div>`;
+                if (i <= state.day) card.onclick = () => { if(i === state.day) attemptStartWorkout(); };
                 else card.style.opacity = '0.2';
                 grid.appendChild(card);
             }
-            const weekNum = Math.ceil(state.day / 7);
-            document.getElementById('calendar-subtitle').innerText = `Week ${weekNum} • Day ${state.day} of 28`;
             const progress = Math.round((state.completedDays.length / 28) * 100);
             document.getElementById('overall-progress-pct').innerText = progress + '%';
             document.getElementById('overall-progress-bar').style.width = progress + '%';
-            const btn = document.getElementById('btn-main-action');
-            if (state.day > 28) { btn.innerText = "CYCLE COMPLETE"; btn.onclick = handleRestartRequest; }
-            else { btn.innerText = state.day % 4 === 0 ? "Enjoy Rest Day" : `Start Session ${state.day}`; }
             updateCountdownTimer();
         }
 
         function attemptStartWorkout() {
-            if (state.day % 4 === 0) { completeRestDay(); return; }
+            if (state.day % 4 === 0) { 
+                state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now(); saveState(); renderCalendar(); 
+                return; 
+            }
             const diff = Date.now() - state.lastWorkoutTime;
             if (state.lastWorkoutTime > 0 && diff < 12 * 60 * 60 * 1000) { document.getElementById('modal-alert').classList.remove('hidden'); return; }
             forceStartWorkout();
         }
 
-        function completeRestDay() { state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now(); saveState(); renderCalendar(); }
-
-        // WORKOUT ENGINE
         function forceStartWorkout() {
             closeModal('modal-alert');
-            const week = Math.ceil(state.day / 7);
-            const blockDay = (state.day - 1) % 4; 
-            let sets = week >= 3 ? 4 : 3;
-            let rest = blockDay === 0 ? 90 : (blockDay === 1 ? 60 : 45);
+            const week = Math.ceil(state.day / 7), blockDay = (state.day - 1) % 4;
+            const sets = week >= 3 ? 4 : 3;
+            const rest = blockDay === 0 ? 90 : (blockDay === 1 ? 60 : 45);
             const steps = [];
             PATTERN_KEYS.forEach(pKey => {
-                const exData = EXERCISES[pKey][state.level];
-                let reps = exData.reps;
+                const ex = EXERCISES[pKey][state.level];
+                let reps = ex.reps;
                 if (blockDay === 1 && reps) reps = Math.round(reps * 1.25);
                 if (blockDay === 2 && reps) reps = Math.round(reps * 1.5);
-                for(let s = 1; s <= sets; s++) { steps.push({ ...exData, reps, set: s, totalSets: sets, rest: rest }); }
+                for(let s = 1; s <= sets; s++) steps.push({ ...ex, reps, set: s, totalSets: sets, rest });
             });
             state.active = { steps, index: 0, phase: 'prep' };
-            showScreen('section-workout'); 
-            renderWorkoutStep();
+            showScreen('section-workout'); renderWorkoutStep();
         }
 
         function renderWorkoutStep() {
-            if (!state.active) return;
             const step = state.active.steps[state.active.index];
             const phase = state.active.phase;
             const gifEl = document.getElementById('workout-gif');
-            
-            document.getElementById('workout-day-title').innerText = `Day ${state.day} Session`;
-            document.getElementById('workout-step-info').innerText = `Pattern ${Math.floor(state.active.index / step.totalSets) + 1}/6 • Set ${step.set}/${step.totalSets}`;
-            
-            resetMedia();
-            document.getElementById('workout-ex-name').innerText = step.name;
-            
-            const coachText = document.getElementById('coach-text');
+            const mediaContainer = document.getElementById('exercise-media-container');
             const timerDisplay = document.getElementById('timer-display');
-            const repDisplay = document.getElementById('rep-display');
+            const coachText = document.getElementById('coach-text');
             const btn = document.getElementById('btn-workout-next');
 
+            document.getElementById('workout-step-info').innerText = `Set ${step.set}/${step.totalSets} • ${Math.floor(state.active.index / step.totalSets) + 1}/6 Exercises`;
+
             if (phase === 'prep') {
-                gifEl.src = step.gif; // Load it but keep frozen via class
+                mediaContainer.classList.remove('hidden-section');
+                timerDisplay.classList.add('hidden');
+                gifEl.src = step.gif;
                 gifEl.classList.add('gif-frozen');
+                document.getElementById('workout-ex-name').innerText = step.name;
+                document.getElementById('workout-ex-target').innerText = step.time ? `${step.time}s` : `${step.reps} Reps`;
                 coachText.innerText = getPhrase('prep', step.name);
-                timerDisplay.classList.add('hidden'); repDisplay.classList.remove('hidden');
-                document.getElementById('workout-ex-target').innerText = step.time ? `${step.time}s static` : `${step.reps} Reps`;
                 btn.innerText = "Begin Set";
             } else if (phase === 'work') {
-                // START ANIMATION: Remove frozen class and force reload to start at frame 1
                 gifEl.classList.remove('gif-frozen');
-                gifEl.src = step.gif + "?t=" + Date.now(); 
-                
+                gifEl.src = step.gif + "?t=" + Date.now();
                 coachText.innerText = getPhrase('work');
                 if (step.time) {
-                    repDisplay.classList.add('hidden'); timerDisplay.classList.remove('hidden');
-                    startCountdown(step.time, () => handleWorkoutProgress());
-                    btn.innerText = "HOLD...";
-                } else btn.innerText = "Set Complete";
+                    startCountdown(step.time, handleWorkoutProgress);
+                    btn.innerText = "Holding...";
+                } else btn.innerText = "Done";
             } else if (phase === 'rest') {
-                gifEl.classList.add('gif-frozen');
+                mediaContainer.classList.add('hidden-section'); // HIDE GIF during rest
+                timerDisplay.classList.remove('hidden');
+                
+                // Show preview of next set/exercise
+                const nextStep = state.active.steps[state.active.index + 1];
+                if(nextStep) document.getElementById('next-ex-name').innerText = nextStep.name;
+
                 coachText.innerText = getPhrase('rest');
-                repDisplay.classList.add('hidden'); timerDisplay.classList.remove('hidden');
-                startCountdown(step.rest, () => handleWorkoutProgress());
-                btn.innerText = "Skip Recovery";
+                startCountdown(step.rest, handleWorkoutProgress);
+                btn.innerText = "Skip Rest";
             }
         }
 
@@ -400,58 +378,30 @@
             renderWorkoutStep();
         }
 
-        function startCountdown(duration, callback) {
-            let left = duration;
-            const el = document.getElementById('countdown-val');
-            el.innerText = left;
+        function startCountdown(dur, cb) {
+            let left = dur; document.getElementById('countdown-val').innerText = left;
             window.workoutTimer = setInterval(() => {
-                left--; el.innerText = left;
-                if (left <= 0) { clearInterval(window.workoutTimer); if(callback) callback(); }
+                left--; document.getElementById('countdown-val').innerText = left;
+                if (left <= 0) { clearInterval(window.workoutTimer); cb(); }
             }, 1000);
         }
 
         function finishWorkout() {
-            state.completedDays.push(state.day); 
-            state.day++; 
-            state.lastWorkoutTime = Date.now();
-            const finishedDayNum = state.day - 1;
-            state.active = null; 
-            saveState(); renderCalendar(); showScreen('section-calendar');
-            const coachText = getPhrase('finish').replace('{day}', finishedDayNum);
-            setTimeout(() => {
-                const msg = document.createElement('div');
-                msg.className = 'fixed top-10 left-1/2 -translate-x-1/2 glass px-6 py-4 rounded-full z-[100] border-indigo-500 fade-in';
-                msg.innerHTML = `<p class="text-indigo-400 font-bold italic">${coachText}</p>`;
-                document.body.appendChild(msg);
-                setTimeout(() => { msg.classList.add('fade-out'); setTimeout(() => msg.remove(), 500); }, 3000);
-            }, 500);
+            state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now();
+            state.active = null; saveState(); renderCalendar(); showScreen('section-calendar');
         }
 
-        // UTILS
         function saveState() { localStorage.setItem('core28_expert_v2', JSON.stringify(state)); }
         function loadState() {
             const saved = localStorage.getItem('core28_expert_v2');
-            if (saved) {
-                state = JSON.parse(saved);
-                if (state.level) { renderCalendar(); showScreen('section-calendar'); return; }
-            }
+            if (saved) { state = JSON.parse(saved); if (state.level) { renderCalendar(); showScreen('section-calendar'); return; } }
             showScreen('section-onboarding');
         }
         function updateCountdownTimer() {
-            if (state.lastWorkoutTime === 0) return;
-            const diff = (state.lastWorkoutTime + 86400000) - Date.now();
             const el = document.getElementById('next-workout-timer');
-            if (el) {
-                if (diff <= 0) {
-                    el.innerText = "COACH: SESSION WINDOW OPEN";
-                    el.className = "text-center text-[10px] text-indigo-400 mt-4 font-black tracking-widest uppercase animate-pulse";
-                } else {
-                    const hours = Math.floor(diff/3600000);
-                    const mins = Math.floor((diff % 3600000) / 60000);
-                    el.innerText = `COACH RECOVERY: ${hours}H ${mins}M REMAINING`;
-                    el.className = "text-center text-[10px] text-slate-600 mt-4 font-black tracking-widest uppercase";
-                }
-            }
+            if (!el || state.lastWorkoutTime === 0) return;
+            const diff = (state.lastWorkoutTime + 86400000) - Date.now();
+            el.innerText = diff <= 0 ? "READY FOR SESSION" : `RECOVERY: ${Math.floor(diff/3600000)}H REMAINING`;
         }
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function handleRestartRequest() { document.getElementById('modal-reset').classList.remove('hidden'); }
@@ -464,7 +414,6 @@
         }
 
         window.onload = loadState;
-        setInterval(updateCountdownTimer, 30000);
     </script>
 </body>
 </html>
