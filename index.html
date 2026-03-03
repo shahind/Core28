@@ -23,9 +23,11 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         
-        /* Pulse for active workout */
         .pulse-border { animation: pulse 2s infinite; }
         @keyframes pulse { 0% { border-color: rgba(99, 102, 241, 0.2); } 50% { border-color: rgba(99, 102, 241, 0.6); } 100% { border-color: rgba(99, 102, 241, 0.2); } }
+
+        /* Class to simulate "paused" GIF look (frozen at first frame or desaturated) */
+        .gif-frozen { filter: grayscale(1) opacity(0.5); pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -46,7 +48,6 @@
                 <button onclick="nextStep('intro', 'q1')" class="w-full btn-coach py-5 rounded-2xl font-extrabold text-xl tracking-tight">Begin Assessment</button>
             </div>
 
-            <!-- QUESTIONNAIRE -->
             <div id="step-q1" class="onboarding-step hidden-section space-y-8">
                 <div class="text-center"><span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Push Capacity</span><h2 class="text-3xl font-black mt-2">Max Push-ups?</h2><p class="text-slate-500 text-sm mt-1">Full range of motion, chest to floor.</p></div>
                 <div class="grid gap-3">
@@ -103,9 +104,7 @@
                 </div>
             </div>
             
-            <div id="calendar-grid" class="grid grid-cols-4 gap-3 overflow-y-auto max-h-[420px] p-2 custom-scrollbar">
-                <!-- Days injected JS -->
-            </div>
+            <div id="calendar-grid" class="grid grid-cols-4 gap-3 overflow-y-auto max-h-[420px] p-2 custom-scrollbar"></div>
 
             <div class="mt-auto pt-8 border-t border-white/5">
                 <button onclick="attemptStartWorkout()" id="btn-main-action" class="w-full btn-coach py-5 rounded-2xl font-black text-xl uppercase tracking-tight">Start Session</button>
@@ -130,7 +129,7 @@
             </div>
             <div id="workout-content" class="flex-grow flex flex-col items-center justify-center text-center space-y-6">
                 <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
-                    <img id="workout-gif" src="" class="w-full h-full object-cover" alt="Workout" onerror="handleMediaError(this)">
+                    <img id="workout-gif" src="" class="w-full h-full object-cover gif-frozen" alt="Workout" onerror="handleMediaError(this)">
                 </div>
                 <div id="timer-display" class="hidden py-4">
                     <span id="countdown-val" class="text-9xl font-black text-white tabular-nums tracking-tighter">30</span>
@@ -141,7 +140,7 @@
                 </div>
             </div>
             <div class="mt-8">
-                <button id="btn-workout-next" onclick="handleWorkoutProgress()" class="w-full btn-coach py-6 rounded-[2rem] font-black text-2xl uppercase tracking-tighter">I'm Done</button>
+                <button id="btn-workout-next" onclick="handleWorkoutProgress()" class="w-full btn-coach py-6 rounded-[2rem] font-black text-2xl uppercase tracking-tighter">Begin Set</button>
             </div>
         </div>
     </div>
@@ -250,20 +249,13 @@
             }, 400);
         }
 
-        // MEDIA HANDLING (FALLBACK)
         function handleMediaError(img) {
-            // If the local gif doesn't exist, show a clean SVG placeholder
             img.style.display = 'none';
             const parent = img.parentElement;
             if (!parent.querySelector('.fallback-icon')) {
                 const icon = document.createElement('div');
                 icon.className = 'fallback-icon text-indigo-500/20';
-                icon.innerHTML = `
-                    <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L18.43 17L20.57 14.86M10.14 12.14L15.5 6.78L17.22 8.5L11.86 13.86L10.14 12.14M22 2V12H20V5.41L11.12 14.29L12.54 15.71L11.12 17.12L12.54 18.54L11.12 19.95L9.71 18.54L8.29 19.95L1.22 12.88L2.64 11.46L1.22 10.05L2.64 8.64L4.05 10.05L5.46 8.64L6.88 10.05L14.09 2.84L15.5 4.25L16.91 2.84L18.33 4.25L22 0.59V2Z" />
-                    </svg>
-                    <p class="text-[10px] uppercase font-bold tracking-tighter mt-2 text-slate-500">Visual unavailable</p>
-                `;
+                icon.innerHTML = `<svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43L20.57 12L17 15.57L18.43 17L20.57 14.86M10.14 12.14L15.5 6.78L17.22 8.5L11.86 13.86L10.14 12.14M22 2V12H20V5.41L11.12 14.29L12.54 15.71L11.12 17.12L12.54 18.54L11.12 19.95L9.71 18.54L8.29 19.95L1.22 12.88L2.64 11.46L1.22 10.05L2.64 8.64L4.05 10.05L5.46 8.64L6.88 10.05L14.09 2.84L15.5 4.25L16.91 2.84L18.33 4.25L22 0.59V2Z" /></svg><p class="text-[10px] uppercase font-bold tracking-tighter mt-2 text-slate-500">Visual unavailable</p>`;
                 parent.appendChild(icon);
             }
         }
@@ -271,6 +263,7 @@
         function resetMedia() {
             const gif = document.getElementById('workout-gif');
             gif.style.display = 'block';
+            gif.classList.add('gif-frozen'); // Reset to frozen state
             const fallback = gif.parentElement.querySelector('.fallback-icon');
             if (fallback) fallback.remove();
         }
@@ -283,23 +276,16 @@
             const push = state.answers.pushups;
             const pull = state.answers.pulls;
             const core = state.answers.core;
-            
             if (push === 0 || pull === 0 || core === 0) state.level = 'beginner';
             else if (push >= 2 && pull >= 2 && core >= 2) state.level = 'professional';
             else state.level = 'intermediate';
-
             document.getElementById('result-level-title').innerText = LEVELS[state.level].title;
             document.getElementById('result-level-desc').innerText = LEVELS[state.level].desc;
             nextStep('q3', 'result');
         }
 
         function finalizeOnboarding() { saveState(); renderCalendar(); showScreen('section-calendar'); }
-
-        function restartOnboarding() {
-            state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null };
-            saveState();
-            window.location.reload();
-        }
+        function restartOnboarding() { state = { level: null, day: 1, completedDays: [], lastWorkoutTime: 0, answers: {}, active: null }; saveState(); window.location.reload(); }
 
         // CALENDAR
         function renderCalendar() {
@@ -308,82 +294,51 @@
                 const isCompleted = state.completedDays.includes(i);
                 const isCurrent = i === state.day;
                 const isRestDay = i % 4 === 0;
-                
                 const card = document.createElement('div');
                 card.className = `day-card p-4 rounded-3xl text-center relative flex flex-col items-center justify-center min-h-[90px] ${isCompleted ? 'day-complete' : ''} ${isCurrent ? 'day-current' : ''} ${isRestDay ? 'day-rest' : 'bg-slate-800/40'}`;
-                
                 const headerText = isRestDay ? `REST` : `DAY`;
                 const centerVal = isRestDay ? `☕` : i;
                 const dayNumDisplay = isRestDay ? `<span class="text-[9px] mt-0.5 opacity-60">${i}</span>` : '';
-
-                card.innerHTML = `
-                    <span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">${headerText}</span>
-                    <div class="text-2xl font-black mt-1 ${isRestDay ? 'grayscale opacity-80' : ''}">${centerVal}</div>
-                    ${dayNumDisplay}
-                `;
-
+                card.innerHTML = `<span class="text-[9px] uppercase font-black text-slate-500 tracking-widest">${headerText}</span><div class="text-2xl font-black mt-1 ${isRestDay ? 'grayscale opacity-80' : ''}">${centerVal}</div>${dayNumDisplay}`;
                 if (i <= state.day) card.onclick = () => { if (i === state.day) attemptStartWorkout(); };
                 else card.style.opacity = '0.2';
                 grid.appendChild(card);
             }
-            
             const weekNum = Math.ceil(state.day / 7);
             document.getElementById('calendar-subtitle').innerText = `Week ${weekNum} • Day ${state.day} of 28`;
             const progress = Math.round((state.completedDays.length / 28) * 100);
             document.getElementById('overall-progress-pct').innerText = progress + '%';
             document.getElementById('overall-progress-bar').style.width = progress + '%';
-            
             const btn = document.getElementById('btn-main-action');
-            if (state.day > 28) {
-                btn.innerText = "CYCLE COMPLETE";
-                btn.onclick = handleRestartRequest;
-            } else {
-                btn.innerText = state.day % 4 === 0 ? "Enjoy Rest Day" : `Start Session ${state.day}`;
-            }
+            if (state.day > 28) { btn.innerText = "CYCLE COMPLETE"; btn.onclick = handleRestartRequest; }
+            else { btn.innerText = state.day % 4 === 0 ? "Enjoy Rest Day" : `Start Session ${state.day}`; }
             updateCountdownTimer();
         }
 
         function attemptStartWorkout() {
-            if (state.day % 4 === 0) {
-                 completeRestDay();
-                 return;
-            }
+            if (state.day % 4 === 0) { completeRestDay(); return; }
             const diff = Date.now() - state.lastWorkoutTime;
-            if (state.lastWorkoutTime > 0 && diff < 12 * 60 * 60 * 1000) {
-                document.getElementById('modal-alert').classList.remove('hidden'); return;
-            }
+            if (state.lastWorkoutTime > 0 && diff < 12 * 60 * 60 * 1000) { document.getElementById('modal-alert').classList.remove('hidden'); return; }
             forceStartWorkout();
         }
 
-        function completeRestDay() {
-            state.completedDays.push(state.day); 
-            state.day++; 
-            state.lastWorkoutTime = Date.now();
-            saveState(); 
-            renderCalendar();
-        }
+        function completeRestDay() { state.completedDays.push(state.day); state.day++; state.lastWorkoutTime = Date.now(); saveState(); renderCalendar(); }
 
         // WORKOUT ENGINE
         function forceStartWorkout() {
             closeModal('modal-alert');
             const week = Math.ceil(state.day / 7);
             const blockDay = (state.day - 1) % 4; 
-            
             let sets = week >= 3 ? 4 : 3;
             let rest = blockDay === 0 ? 90 : (blockDay === 1 ? 60 : 45);
-
             const steps = [];
             PATTERN_KEYS.forEach(pKey => {
                 const exData = EXERCISES[pKey][state.level];
                 let reps = exData.reps;
                 if (blockDay === 1 && reps) reps = Math.round(reps * 1.25);
                 if (blockDay === 2 && reps) reps = Math.round(reps * 1.5);
-
-                for(let s = 1; s <= sets; s++) {
-                    steps.push({ ...exData, reps, set: s, totalSets: sets, rest: rest });
-                }
+                for(let s = 1; s <= sets; s++) { steps.push({ ...exData, reps, set: s, totalSets: sets, rest: rest }); }
             });
-            
             state.active = { steps, index: 0, phase: 'prep' };
             showScreen('section-workout'); 
             renderWorkoutStep();
@@ -393,12 +348,12 @@
             if (!state.active) return;
             const step = state.active.steps[state.active.index];
             const phase = state.active.phase;
+            const gifEl = document.getElementById('workout-gif');
             
             document.getElementById('workout-day-title').innerText = `Day ${state.day} Session`;
             document.getElementById('workout-step-info').innerText = `Pattern ${Math.floor(state.active.index / step.totalSets) + 1}/6 • Set ${step.set}/${step.totalSets}`;
             
             resetMedia();
-            document.getElementById('workout-gif').src = step.gif;
             document.getElementById('workout-ex-name').innerText = step.name;
             
             const coachText = document.getElementById('coach-text');
@@ -407,11 +362,17 @@
             const btn = document.getElementById('btn-workout-next');
 
             if (phase === 'prep') {
+                gifEl.src = step.gif; // Load it but keep frozen via class
+                gifEl.classList.add('gif-frozen');
                 coachText.innerText = getPhrase('prep', step.name);
                 timerDisplay.classList.add('hidden'); repDisplay.classList.remove('hidden');
                 document.getElementById('workout-ex-target').innerText = step.time ? `${step.time}s static` : `${step.reps} Reps`;
                 btn.innerText = "Begin Set";
             } else if (phase === 'work') {
+                // START ANIMATION: Remove frozen class and force reload to start at frame 1
+                gifEl.classList.remove('gif-frozen');
+                gifEl.src = step.gif + "?t=" + Date.now(); 
+                
                 coachText.innerText = getPhrase('work');
                 if (step.time) {
                     repDisplay.classList.add('hidden'); timerDisplay.classList.remove('hidden');
@@ -419,6 +380,7 @@
                     btn.innerText = "HOLD...";
                 } else btn.innerText = "Set Complete";
             } else if (phase === 'rest') {
+                gifEl.classList.add('gif-frozen');
                 coachText.innerText = getPhrase('rest');
                 repDisplay.classList.add('hidden'); timerDisplay.classList.remove('hidden');
                 startCountdown(step.rest, () => handleWorkoutProgress());
@@ -454,11 +416,7 @@
             state.lastWorkoutTime = Date.now();
             const finishedDayNum = state.day - 1;
             state.active = null; 
-            saveState(); 
-            renderCalendar(); 
-            showScreen('section-calendar');
-            
-            // Custom finishing message
+            saveState(); renderCalendar(); showScreen('section-calendar');
             const coachText = getPhrase('finish').replace('{day}', finishedDayNum);
             setTimeout(() => {
                 const msg = document.createElement('div');
