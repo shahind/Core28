@@ -13,15 +13,16 @@
         .btn-coach:active { transform: scale(0.97); opacity: 0.9; }
         .hidden-section { display: none !important; }
         .fade-in { animation: fadeIn 0.5s ease forwards; }
-        .fade-out { animation: fadeOut 0.5s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .day-card { transition: all 0.3s ease; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); }
         .day-complete { background: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.3) !important; }
         .day-current { border: 2px solid #6366f1 !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); transform: scale(1.05); z-index: 10; }
-        .day-rest { background: rgba(255, 255, 255, 0.02); }
         .progress-bar-inner { transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        /* Ensure GIF is always visible unless explicitly hidden by phase */
+        #workout-gif { display: block; width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -33,7 +34,7 @@
             <div id="step-intro" class="onboarding-step space-y-8 py-10 text-center">
                 <div class="space-y-4">
                     <div class="inline-block p-4 bg-indigo-500/10 rounded-3xl text-indigo-400 mb-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                     </div>
                     <h1 class="text-5xl font-black tracking-tighter italic text-indigo-400">CORE28</h1>
                     <h2 class="text-2xl font-bold">Expert Calibration</h2>
@@ -123,10 +124,10 @@
             </div>
 
             <div id="workout-content" class="flex-grow flex flex-col items-center justify-center text-center space-y-6">
-                <!-- EXERCISE MEDIA AREA (Hidden during rest) -->
+                <!-- EXERCISE MEDIA AREA (Hidden only during rest) -->
                 <div id="exercise-media-container" class="w-full flex flex-col items-center space-y-6">
-                    <div id="exercise-media" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
-                        <img id="workout-gif" src="" class="w-full h-full object-cover" alt="Workout" onerror="handleMediaError(this)">
+                    <div id="exercise-media-box" class="w-full aspect-square max-w-[280px] rounded-[3rem] bg-slate-900 overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center">
+                        <img id="workout-gif" src="" alt="Exercise animation">
                     </div>
                     <div id="rep-display">
                         <h3 id="workout-ex-name" class="text-3xl font-black leading-tight uppercase tracking-tighter text-slate-100">Exercise</h3>
@@ -165,7 +166,7 @@
 
     <div id="modal-reset" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-6">
         <div class="glass w-full max-w-sm rounded-[2.5rem] p-10 text-center space-y-6 border-red-500/20">
-            <h3 class="text-3xl font-black text-red-500 italic uppercase tracking-tighter text-slate-100">Reset App?</h3>
+            <h3 class="text-3xl font-black text-red-500 italic uppercase tracking-tighter">Reset App?</h3>
             <p class="text-slate-300 text-sm leading-relaxed">This will erase all progress. It cannot be undone.</p>
             <div class="flex gap-3">
                 <button onclick="closeModal('modal-reset')" class="flex-1 bg-slate-800 py-4 rounded-2xl font-bold">Cancel</button>
@@ -176,7 +177,7 @@
 
     <div id="modal-quit" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-6">
         <div class="glass w-full max-w-sm rounded-[2.5rem] p-10 text-center space-y-6 border-white/10">
-            <h3 class="text-3xl font-black text-white italic uppercase tracking-tighter text-slate-100">End Session?</h3>
+            <h3 class="text-3xl font-black text-white italic uppercase tracking-tighter">End Session?</h3>
             <p class="text-slate-300 text-sm leading-relaxed">Progress is saved only on completion.</p>
             <div class="flex gap-3">
                 <button onclick="closeModal('modal-quit')" class="flex-1 bg-slate-800 py-4 rounded-2xl font-bold">Resume</button>
@@ -227,7 +228,7 @@
         };
         const COACH_PHRASES = {
             prep: ["Position for {name}.", "Slow tempo.", "Focus on the squeeze."],
-            work: ["Drive through!", "Breathe!", "Don't compromise form."],
+            work: ["Drive through!", "Breathe!", "Focus on form."],
             rest: ["Deep breaths.", "Recover fully.", "Ready for next?"],
             finish: ["Day {day} complete. Growth phase started."]
         };
@@ -242,24 +243,10 @@
         }
 
         function nextStep(current, next) {
-            const curEl = document.getElementById(`step-${current}`);
+            document.getElementById(`step-${current}`).classList.add('hidden-section');
             const nxtEl = document.getElementById(`step-${next}`);
-            curEl.classList.add('fade-out');
-            setTimeout(() => {
-                curEl.classList.add('hidden-section'); curEl.classList.remove('fade-out');
-                nxtEl.classList.remove('hidden-section'); nxtEl.classList.add('fade-in');
-            }, 400);
-        }
-
-        function handleMediaError(img) {
-            img.style.display = 'none';
-            const parent = img.parentElement;
-            if (!parent.querySelector('.fallback-icon')) {
-                const icon = document.createElement('div');
-                icon.className = 'fallback-icon text-indigo-500/20';
-                icon.innerHTML = `<svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>`;
-                parent.appendChild(icon);
-            }
+            nxtEl.classList.remove('hidden-section');
+            nxtEl.classList.add('fade-in');
         }
 
         function saveAnswer(key, val, current, next) { state.answers[key] = val; nextStep(current, next); }
@@ -320,7 +307,8 @@
                 for(let s = 1; s <= sets; s++) steps.push({ ...ex, reps, set: s, totalSets: sets, rest });
             });
             state.active = { steps, index: 0, phase: 'prep' };
-            showScreen('section-workout'); renderWorkoutStep();
+            showScreen('section-workout'); 
+            renderWorkoutStep();
         }
 
         function renderWorkoutStep() {
@@ -332,15 +320,16 @@
             const coachText = document.getElementById('coach-text');
             const btn = document.getElementById('btn-workout-next');
 
-            document.getElementById('workout-step-info').innerText = `Set ${step.set}/${step.totalSets} • ${Math.floor(state.active.index / step.totalSets) + 1}/6 Exercises`;
+            document.getElementById('workout-day-title').innerText = `DAY ${state.day} • ${LEVELS[state.level].title}`;
+            document.getElementById('workout-step-info').innerText = `Set ${step.set}/${step.totalSets} • ${Math.floor(state.active.index / step.totalSets) + 1}/6 Patterns`;
 
             if (phase === 'prep') {
                 mediaContainer.classList.remove('hidden-section');
                 timerDisplay.classList.add('hidden');
                 
-                // Show exercise as static first or just ensure it's loaded
+                // Show the GIF but dim it slightly to indicate it's not "Work" yet
                 gifEl.src = step.gif;
-                gifEl.style.opacity = "0.4"; // Visual cue it's the prep phase
+                gifEl.style.opacity = "0.5";
                 
                 document.getElementById('workout-ex-name').innerText = step.name;
                 document.getElementById('workout-ex-target').innerText = step.time ? `${step.time}s` : `${step.reps} Reps`;
@@ -350,17 +339,19 @@
                 mediaContainer.classList.remove('hidden-section');
                 timerDisplay.classList.add('hidden');
                 
-                // RESTORED GIF LOGIC: Force reload gif on work start
-                gifEl.src = step.gif + "?t=" + Date.now();
+                // RESTORED: Restart GIF by re-assigning source with a unique param
+                gifEl.src = step.gif + "?t=" + new Date().getTime();
                 gifEl.style.opacity = "1";
                 
                 coachText.innerText = getPhrase('work');
                 if (step.time) {
                     startCountdown(step.time, handleWorkoutProgress);
                     btn.innerText = "Holding...";
-                } else btn.innerText = "Done";
+                } else {
+                    btn.innerText = "Done";
+                }
             } else if (phase === 'rest') {
-                mediaContainer.classList.add('hidden-section'); // Keep hidden during rest
+                mediaContainer.classList.add('hidden-section'); // Focus only on the timer
                 timerDisplay.classList.remove('hidden');
                 
                 const nextStep = state.active.steps[state.active.index + 1];
@@ -374,12 +365,17 @@
 
         function handleWorkoutProgress() {
             clearInterval(window.workoutTimer);
-            if (state.active.phase === 'prep') state.active.phase = 'work';
-            else if (state.active.phase === 'work') {
-                if (state.active.index === state.active.steps.length - 1) { finishWorkout(); return; }
+            if (state.active.phase === 'prep') {
+                state.active.phase = 'work';
+            } else if (state.active.phase === 'work') {
+                if (state.active.index === state.active.steps.length - 1) {
+                    finishWorkout();
+                    return;
+                }
                 state.active.phase = 'rest';
             } else if (state.active.phase === 'rest') {
-                state.active.index++; state.active.phase = 'prep';
+                state.active.index++;
+                state.active.phase = 'prep';
             }
             renderWorkoutStep();
         }
