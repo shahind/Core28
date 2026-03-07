@@ -19,7 +19,12 @@
         .day-current { border: 2px solid #6366f1 !important; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); transform: scale(1.05); z-index: 10; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        #workout-gif { display: block; width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Focus/Dimming logic */
+        #workout-gif { display: block; width: 100%; height: 100%; object-fit: cover; transition: all 0.6s ease; }
+        .gif-focus { filter: grayscale(1) brightness(0.2) blur(2px); }
+        .gif-active { filter: grayscale(0) brightness(1) blur(0); }
+        #focus-overlay { transition: opacity 0.4s ease; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -150,8 +155,15 @@
 
             <div id="workout-content" class="flex-grow flex flex-col items-center justify-center text-center space-y-6">
                 <div id="exercise-media-container" class="w-full flex flex-col items-center space-y-6">
-                    <div id="exercise-media-box" class="w-full aspect-square max-w-[260px] rounded-[3rem] bg-slate-900/50 overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center">
-                        <img id="workout-gif" src="" alt="Exercise animation">
+                    <div id="exercise-media-box" class="relative w-full aspect-square max-w-[260px] rounded-[3rem] bg-slate-900/50 overflow-hidden shadow-2xl border border-white/5 flex items-center justify-center">
+                        <img id="workout-gif" src="" alt="Exercise animation" class="gif-focus">
+                        <!-- Focus Overlay -->
+                        <div id="focus-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1px]">
+                             <div class="p-3 bg-indigo-500/20 rounded-full mb-3">
+                                
+                             </div>
+                             <span class="text-white text-xs font-bold tracking-[0.2em] uppercase">Prepare For The Next</span>
+                        </div>
                     </div>
                     <div id="rep-display">
                         <h3 id="workout-ex-name" class="text-2xl font-black uppercase tracking-tighter text-slate-100">Push-ups</h3>
@@ -167,13 +179,12 @@
             </div>
 
             <div class="mt-8">
-                <button id="btn-workout-next" onclick="handleWorkoutProgress()" class="w-full btn-coach py-6 rounded-[2rem] font-black text-2xl uppercase tracking-tighter italic">Begin Set</button>
+                <button id="btn-workout-next" onclick="handleWorkoutProgress()" class="w-full btn-coach py-6 rounded-[2rem] font-black text-2xl uppercase tracking-tighter italic">Ready</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Data embedded directly to prevent fetch errors
         const exercisePool = [
             { "title": "90 to 90 Stretch", "gif": "90_to_90_stretch.gif", "muscles": ["Hips", "Glutes"], "difficulty": 1, "category": "Mobility/Flexibility" },
             { "title": "Abdominal Crunches", "gif": "abdominal_crunches.gif", "muscles": ["Abs"], "difficulty": 1, "category": "Strength/Hypertrophy" },
@@ -308,7 +319,7 @@
             p.exercises.forEach(ex => {
                 for(let s=1; s<=ex.sets; s++) steps.push({...ex, curSet: s});
             });
-            state.active = { steps, index: 0, phase: 'prep' };
+            state.active = { steps, index: 0, phase: 'focus' }; // focus, work, rest
             showScreen('section-workout');
             renderStep();
         }
@@ -316,31 +327,57 @@
         function renderStep() {
             if(!state.active) return;
             const s = state.active.steps[state.active.index];
+            const gifEl = document.getElementById('workout-gif');
+            const overlay = document.getElementById('focus-overlay');
+            const mediaBox = document.getElementById('exercise-media-container');
+            const timerBox = document.getElementById('timer-display');
+            const btn = document.getElementById('btn-workout-next');
+
             document.getElementById('workout-day-title').innerText = `Day ${state.day} • Session`;
             document.getElementById('workout-step-info').innerText = `Exercise ${Math.floor(state.active.index/s.sets)+1}/6 • Set ${s.curSet}/${s.sets}`;
-            if(state.active.phase === 'prep') {
-                document.getElementById('exercise-media-container').classList.remove('hidden-section');
-                document.getElementById('timer-display').classList.add('hidden');
-                document.getElementById('workout-gif').src = "img/" + s.gif;
+            
+            if(state.active.phase === 'focus') {
+                // Dimmed state
+                mediaBox.classList.remove('hidden-section');
+                timerBox.classList.add('hidden');
+                overlay.style.opacity = '1';
+                overlay.classList.remove('hidden-section');
+                gifEl.classList.add('gif-focus');
+                gifEl.classList.remove('gif-active');
+                gifEl.src = "img/" + s.gif;
                 document.getElementById('workout-ex-name').innerText = s.title;
                 document.getElementById('workout-ex-target').innerText = s.reps;
-                document.getElementById('btn-workout-next').innerText = "Begin Set";
+                btn.innerText = "Ready";
+            } else if (state.active.phase === 'work') {
+                // Active state
+                mediaBox.classList.remove('hidden-section');
+                timerBox.classList.add('hidden');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.classList.add('hidden-section'), 400);
+                gifEl.classList.remove('gif-focus');
+                gifEl.classList.add('gif-active');
+                btn.innerText = "Done";
             } else {
-                document.getElementById('exercise-media-container').classList.add('hidden-section');
-                document.getElementById('timer-display').classList.remove('hidden');
-                document.getElementById('btn-workout-next').innerText = "Skip Rest";
+                // Rest state
+                mediaBox.classList.add('hidden-section');
+                timerBox.classList.remove('hidden');
+                btn.innerText = "Skip Rest";
                 runTimer(s.rest);
             }
         }
 
         function handleWorkoutProgress() {
             clearInterval(window.tmr);
-            if(state.active.phase === 'prep') {
+            if(state.active.phase === 'focus') {
+                state.active.phase = 'work';
+                renderStep();
+            } else if(state.active.phase === 'work') {
                 state.active.phase = 'rest';
                 if(state.active.index === state.active.steps.length - 1) { completeDay(); return; }
                 renderStep();
             } else {
-                state.active.index++; state.active.phase = 'prep';
+                state.active.index++; 
+                state.active.phase = 'focus';
                 renderStep();
             }
         }
@@ -386,12 +423,12 @@
             document.querySelectorAll('[id^="section-"]').forEach(s => s.classList.add('hidden-section'));
             document.getElementById(id).classList.remove('hidden-section');
         }
-        function save() { localStorage.setItem('core28_pro_v7', JSON.stringify(state)); }
+        function save() { localStorage.setItem('core28_pro_v8', JSON.stringify(state)); }
         function performQuitWorkout() { clearInterval(window.tmr); state.active = null; showScreen('section-calendar'); }
         function handleRestartRequest() { if(confirm("Reset all data?")) { localStorage.clear(); window.location.reload(); } }
 
         window.onload = function() {
-            const saved = localStorage.getItem('core28_pro_v7');
+            const saved = localStorage.getItem('core28_pro_v8');
             if(saved) { 
                 state = JSON.parse(saved); 
                 if(state.plan) { renderCalendar(); showScreen('section-calendar'); return; } 
